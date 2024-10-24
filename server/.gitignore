@@ -1,0 +1,5 @@
+# Ignore the .env file containing sensitive data
+.env
+
+# Ignore Firebase credentials JSON file
+*.json
