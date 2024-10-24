@@ -72,7 +72,7 @@ export default function Home() {
         const borderColor = getBorderColor(lift.crowd_density);
 
         return (
-          <div key={liftKey} className={`mb-6 w-[70%] p-4 border-[3px] rounded-lg hover:scale-105 transition-all shadow-lg ${borderColor}`}>
+          <div key={liftKey} className={`mb-6 w-[70%] p-4 border-[3px] bg-gray-900 rounded-lg hover:scale-105 transition-all shadow-lg ${borderColor}`}>
             <h2 className="text-xl font-semibold text-white mb-2">{liftKey.replace('lift', 'Lift ')}</h2>
             <div className="space-y-2 text-white">
               <p className='text-xl'><strong>Location:</strong> <span>{lift.location}</span></p>
