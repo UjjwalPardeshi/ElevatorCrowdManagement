@@ -63,7 +63,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen p-4 flex flex-col">
+    <div className="min-h-screen p-4 flex flex-col items-center gap-5">
       <h1 className="text-2xl font-bold mb-4 text-center">Elevator Crowd Management System</h1>
 
       {Object.keys(lifts).map((liftKey) => {
@@ -71,7 +71,7 @@ export default function Home() {
         const borderColor = getBorderColor(lift.crowd_density);
 
         return (
-          <div key={liftKey} className={`mb-6 p-4 border-[3px] rounded-lg shadow-lg ${borderColor}`}>
+          <div key={liftKey} className={`mb-6 w-[70%] p-4 border-[3px] rounded-lg hover:scale-105 transition-all shadow-lg ${borderColor}`}>
             <h2 className="text-xl font-semibold mb-2">{liftKey.replace('lift', 'Lift ')}</h2>
             <div className="space-y-2">
               <p><strong>Location:</strong> <span>{lift.location}</span></p>
