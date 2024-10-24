@@ -51,8 +51,8 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Crowd Detection Near Lifts</h1>
+    <div className="min-h-screen p-4 flex flex-col">
+      <h1 className="text-2xl font-bold mb-4">Elevator Crowd Management System </h1>
 
       {Object.keys(lifts).map((liftKey) => (
         <div key={liftKey} className="mb-6 p-4 border border-gray-300 rounded-lg shadow-sm">
