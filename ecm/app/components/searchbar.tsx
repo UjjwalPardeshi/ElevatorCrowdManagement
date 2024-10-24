@@ -69,7 +69,8 @@ const SearchBar: React.FC<SearchBarProps> = ({ setLifts }) => {
       />
       <button
         onClick={handleSearch}
-        style={{ padding: '10px 20px', marginTop: '10px', background: '#007BFF', color: '#fff', border: 'none', borderRadius: '5px' }}
+        className='hover:scale-105 transition-all'
+        style={{ padding: '10px 20px', marginTop: '10px', background: '#2E073F', color: '#fff', border: 'none', borderRadius: '5px' }}
       >
         Search
       </button>
