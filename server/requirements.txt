@@ -1,0 +1,10 @@
+# Requirements for multicam_server and admin_server
+
+Flask==3.0.3
+firebase-admin==6.5.0
+imutils==0.5.4
+opencv-python==4.10.0.84
+requests==2.32.0
+python-dotenv==1.0.0
+numpy==1.26.4
+openvino==2024.4.0

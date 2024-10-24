@@ -3,3 +3,4 @@
 
 # Ignore Firebase credentials JSON file
 *.json
+__pycache__/

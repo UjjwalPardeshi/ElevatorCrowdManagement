@@ -40,26 +40,36 @@ def update_firebase(camera_id, people_count, crowd_density, location):
     try:
         print(f"Updating Firebase for {camera_id} with {people_count} people and {crowd_density} crowd density")
         ref = db.reference(f'cameras/{camera_id}')
-        ref.set({
+        ref.update({
             'people_count': people_count,
             'crowd_density': crowd_density,
-            'location': location,  # Add location to Firebase
+            'location': location,
             'timestamp': t.strftime("%Y-%m-%dT%H:%M:%S"),
-            'send_alert': crowd_density == 'dense'  # Trigger Firebase function if crowd is dense
-
+            'send_alert': crowd_density == 'dense'
         })
     except Exception as e:
         print(f"Error updating Firebase: {e}")
 
-# Inference function for a single camera
+# Inference function for a single camera, checking if it's active
 def inference(camera_id, url, location):
     boxlist = []
     box = [0]
 
     while not stopflag.is_set():
         try:
+            # Check if camera is active
+            isactive_ref = db.reference(f'cameras/{camera_id}/isactive')
+            isactive = isactive_ref.get()
+            
+            if not isactive:
+                print(f"Camera {camera_id} is inactive. Skipping inference.")
+                # Update Firebase status
+                update_firebase(camera_id, 0, "Under Maintenance", location)
+                t.sleep(5)  # Sleep for a while before checking again
+                continue
+            
             # Fetch the image from the camera
-            img_resp = requests.get(url, timeout=1)  # Timeout reduced for faster retries
+            img_resp = requests.get(url, timeout=1)
             if img_resp.status_code == 200:
                 img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8)
                 img = cv2.imdecode(img_arr, -1)
@@ -110,38 +120,27 @@ def inference(camera_id, url, location):
         # Sleep to avoid overwhelming the server with requests
         t.sleep(1)
 
+# Start inference for cameras in separate threads
+camera_data = {
+    "camera1": {"url": "http://10.9.0.41:8080/shot.jpg", "location": "Placement Office"},
+    "camera2": {"url": "http://10.9.10.108:8080/shot.jpg", "location": "Placement Office"},
+    "camera3": {"url": "http://10.9.77.123:8080/shot.jpg", "location": "I Mac Lab"},
+    "camera4": {"url": "http://10.9.80.97:8080/shot.jpg", "location": "I Mac Lab"},
+}
 
-# Start inference for two cameras in separate threads
-camera1_url = "http://10.9.0.41:8080/shot.jpg"  # Camera 1 URL
-camera2_url = "http://192.168.29.35:8080/shot.jpg"  # Camera 2 URL
-camera3_url = "http://192.168.29.34:8080/shot.jpg"  # Camera 3 URL
-camera4_url = "http://192.168.29.52:8080/shot.jpg"  # Camera 4 URL
-
-# Assign locations to each camera
-location_camera1_2 = "Placement Office"
-location_camera3_4 = "I Mac Lab"
-
-# Start inference threads with location
-infr_thread_camera1 = threading.Thread(target=inference, args=("camera1", camera1_url, location_camera1_2))
-infr_thread_camera2 = threading.Thread(target=inference, args=("camera2", camera2_url, location_camera1_2))
-infr_thread_camera3 = threading.Thread(target=inference, args=("camera3", camera3_url, location_camera3_4))
-infr_thread_camera4 = threading.Thread(target=inference, args=("camera4", camera4_url, location_camera3_4))
-
-infr_thread_camera1.start()
-infr_thread_camera2.start()
-infr_thread_camera3.start()
-infr_thread_camera4.start()
+# Dynamically create threads for each camera
+for camera_id, camera_info in camera_data.items():
+    threading.Thread(target=inference, args=(camera_id, camera_info["url"], camera_info["location"])).start()
 
 # Main server loop (no client required)
 try:
     while not stopflag.is_set():
-        t.sleep(1)  # Server can run continuously and handle shutdown via KeyboardInterrupt
-
+        t.sleep(1)
 except KeyboardInterrupt:
     print("Shutting down server...")
     stopflag.set()
-    infr_thread_camera1.join()
-    infr_thread_camera2.join()
-    infr_thread_camera3.join()
-    infr_thread_camera4.join()
+    for thread in threading.enumerate():
+        if thread is not threading.current_thread():
+            thread.join()
 print("Server stopped.")
+

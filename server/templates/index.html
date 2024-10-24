@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Camera Control</title>
+</head>
+<body>
+    <h1>Admin Camera Control</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Camera ID</th>
+                <th>Location</th>
+                <th>Active</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for camera_id, camera_data in cameras.items() %}
+            <tr>
+                <td>{{ camera_id }}</td>
+                <td>{{ camera_data['location'] }}</td>
+                <td>
+                    <form action="/update_status" method="POST">
+                        <input type="hidden" name="camera_id" value="{{ camera_id }}">
+                        <input type="checkbox" name="isactive" {% if camera_data['isactive'] %}checked{% endif %}>
+                </td>
+                <td><button type="submit">Update</button></form></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
+
