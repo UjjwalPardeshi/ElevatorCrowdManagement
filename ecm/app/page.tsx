@@ -1,55 +1,62 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { getDatabase, ref, onValue } from 'firebase/database';
-import app from './firebase/firebaseConfig';
+import { ref, onValue } from 'firebase/database';
+import database from './firebase/firebaseConfig';
 import Navbar from './components/navbar';
-const database = getDatabase(app);
-
-type LiftData = {
-  location: string;
-  people_count: string;
-  crowd_density: string;
-  timestamp: string;
-};
-
-type Lifts = {
-  lift1: LiftData;
-  lift2: LiftData;
-  lift3: LiftData;
-  lift4: LiftData;
-};
+import SearchBar from './components/searchbar';
+import { Lifts } from './types';
 
 export default function Home() {
-  const [lifts, setLifts] = useState<Lifts>({
-    lift1: { location: 'Loading...', people_count: 'Loading...', crowd_density: 'Loading...', timestamp: 'Loading...' },
-    lift2: { location: 'Loading...', people_count: 'Loading...', crowd_density: 'Loading...', timestamp: 'Loading...' },
-    lift3: { location: 'Loading...', people_count: 'Loading...', crowd_density: 'Loading...', timestamp: 'Loading...' },
-    lift4: { location: 'Loading...', people_count: 'Loading...', crowd_density: 'Loading...', timestamp: 'Loading...' },
-  });
+  const [lifts, setLifts] = useState<Lifts | null>(null); // Start with no lifts displayed
+  const [loading, setLoading] = useState(false); // Loading state for search
 
+  // Load all cameras initially (only once on mount)
   useEffect(() => {
-    const liftRefs = [
-      { id: 'lift1', ref: ref(database, 'cameras/camera1') },
-      { id: 'lift2', ref: ref(database, 'cameras/camera2') },
-      { id: 'lift3', ref: ref(database, 'cameras/camera3') },
-      { id: 'lift4', ref: ref(database, 'cameras/camera4') },
+    setLoading(true);
+    const cameraRefs = [
+      { id: 'camera1', ref: ref(database, 'cameras/camera1') },
+      { id: 'camera2', ref: ref(database, 'cameras/camera2') },
+      { id: 'camera3', ref: ref(database, 'cameras/camera3') },
+      { id: 'camera4', ref: ref(database, 'cameras/camera4') },
     ];
 
-    liftRefs.forEach(({ id, ref }) => {
+    cameraRefs.forEach(({ id, ref }) => {
       onValue(ref, (snapshot) => {
         const data = snapshot.val();
-        setLifts((prevLifts) => ({
-          ...prevLifts,
-          [id]: {
-            location: data?.location || 'Unknown location',
-            people_count: data?.people_count || 'No data',
-            crowd_density: data?.crowd_density || 'No data',
-            timestamp: data?.timestamp || 'No data',
-          },
-        }));
+        setLifts((prevLifts) => {
+          const defaultLiftData = {
+            location: 'Unknown location',
+            people_count: 'No data',
+            crowd_density: 'No data',
+            timestamp: 'No data',
+          };
+
+          return {
+            ...(prevLifts || {}),
+            [id]: {
+              location: data?.location || defaultLiftData.location,
+              people_count: data?.people_count || defaultLiftData.people_count,
+              crowd_density: data?.crowd_density || defaultLiftData.crowd_density,
+              timestamp: data?.timestamp || defaultLiftData.timestamp,
+            },
+          } as Lifts;
+        });
       });
     });
-  }, []);
+    setLoading(false);
+  }, []); // Empty dependency array ensures it only runs once
+
+  // Triggered when search results are ready
+  const handleSearchResults = (newLifts: Lifts) => {
+    setLoading(false); // Stop loading when search results are fetched
+    setLifts(newLifts); // Replace lifts with search results
+  };
+
+  // Triggered when the search begins
+  const handleSearchStart = () => {
+    setLoading(true); // Start loading
+    setLifts(null); // Clear lifts to ensure only search results show up
+  };
 
   const getBorderColor = (crowd_density: string) => {
     if (crowd_density === 'low') {
@@ -59,26 +66,43 @@ export default function Home() {
     } else if (crowd_density === 'high') {
       return 'border-red-500';
     } else {
-      return 'border-gray-300'; // default color if no crowd_density data
+      return 'border-gray-300'; // Default color if no crowd_density data
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col items-center gap-5 bg-gray-800">
-      <Navbar/>
+      <Navbar />
 
-      {Object.keys(lifts).map((liftKey) => {
-        const lift = lifts[liftKey as keyof Lifts];
-        const borderColor = getBorderColor(lift.crowd_density);
+      {/* Render SearchBar with the necessary props */}
+      <SearchBar setLifts={handleSearchResults} onSearchStart={handleSearchStart} />
+
+      {/* Show a loader during search */}
+      {loading && (
+        <div className="flex justify-center items-center mt-10">
+          <div className="loader">Loading...</div> {/* Replace with a custom loader if needed */}
+        </div>
+      )}
+
+      {/* If no lifts are found and not loading */}
+      {!loading && lifts === null && (
+        <p className="text-white text-xl mt-10">No cameras to display. Please search or wait for data to load.</p>
+      )}
+
+      {/* Render the camera data if available */}
+      {!loading && lifts && Object.keys(lifts).length > 0 && Object.keys(lifts).map((cameraKey) => {
+        const camera = lifts[cameraKey as keyof Lifts];
+        const borderColor = getBorderColor(camera.crowd_density);
 
         return (
-          <div key={liftKey} className={`mb-6 w-[70%] p-4 border-[3px] bg-gray-900 rounded-lg hover:scale-105 transition-all shadow-lg ${borderColor}`}>
-            <h2 className="text-xl font-semibold text-white mb-2">{liftKey.replace('lift', 'Lift ')}</h2>
+          <div key={cameraKey} className={`mb-6 w-[70%] p-4 border-[3px] bg-gray-900 rounded-lg hover:scale-105 transition-all shadow-lg ${borderColor}`}>
+            {/* Use the dynamic camera key as the title */}
+            <h2 className="text-xl font-semibold text-white mb-2">{cameraKey.replace('camera', 'Camera ')}</h2>
             <div className="space-y-2 text-white">
-              <p className='text-xl'><strong>Location:</strong> <span>{lift.location}</span></p>
-              <p><strong>People Count:</strong> <span>{lift.people_count}</span></p>
-              <p><strong>Crowd Density:</strong> <span>{lift.crowd_density}</span></p>
-              <p><strong>Last Updated:</strong> <span>{lift.timestamp}</span></p>
+              <p className='text-xl'><strong>Location:</strong> <span>{camera.location}</span></p>
+              <p><strong>People Count:</strong> <span>{camera.people_count}</span></p>
+              <p><strong>Crowd Density:</strong> <span>{camera.crowd_density}</span></p>
+              <p><strong>Last Updated:</strong> <span>{camera.timestamp}</span></p>
             </div>
           </div>
         );
