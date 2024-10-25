@@ -5,33 +5,39 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Camera Control</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>Admin Camera Control</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>Camera ID</th>
-                <th>Location</th>
-                <th>Active</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for camera_id, camera_data in cameras.items() %}
-            <tr>
-                <td>{{ camera_id }}</td>
-                <td>{{ camera_data['location'] }}</td>
-                <td>
-                    <form action="/update_status" method="POST">
-                        <input type="hidden" name="camera_id" value="{{ camera_id }}">
-                        <input type="checkbox" name="isactive" {% if camera_data['isactive'] %}checked{% endif %}>
-                </td>
-                <td><button type="submit">Update</button></form></td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<body class="bg-gray-100 p-8">
+    <h1 class="text-3xl font-bold mb-8 text-center">Admin Camera Control</h1>
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+            <thead class="bg-gray-800 text-white">
+                <tr>
+                    <th class="py-3 px-6 text-left">Camera ID</th>
+                    <th class="py-3 px-6 text-left">Location</th>
+                    <th class="py-3 px-6 text-center">Active</th>
+                    <th class="py-3 px-6 text-center">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for camera_id, camera_data in cameras.items() %}
+                <tr class="border-b hover:bg-gray-100">
+                    <td class="py-4 px-6">{{ camera_id }}</td>
+                    <td class="py-4 px-6">{{ camera_data['location'] }}</td>
+                    <td class="py-4 px-6 text-center">
+                        <form action="/update_status" method="POST">
+                            <input type="hidden" name="camera_id" value="{{ camera_id }}">
+                            <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600" name="isactive" {% if camera_data['isactive'] %}checked{% endif %}>
+                    </td>
+                    <td class="py-4 px-6 text-center">
+                        <button type="submit" class="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600 transition">Update</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </body>
 </html>
 
