@@ -100,7 +100,7 @@ export default function Home() {
         return (
           <div key={cameraKey} className={`mb-6 w-[70%] p-4 border-[3px] bg-[#000000BF] rounded-lg hover:scale-105 transition-all shadow-lg ${borderColor}`}>
             {/* Use the dynamic camera key as the title */}
-            <h2 className="text-xl font-semibold text-white mb-2">{cameraKey.replace('camera', 'Camera ')}</h2>
+            <h2 className="text-xl font-semibold text-white mb-2">{cameraKey.replace('camera', 'Lift ')}</h2>
             <div className="space-y-2 text-white">
               <p className='text-xl'><strong>Location:</strong> <span>{camera.location}</span></p>
               <p><strong>People Count:</strong> <span>{camera.people_count}</span></p>
