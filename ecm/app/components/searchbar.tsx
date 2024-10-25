@@ -7,7 +7,7 @@ interface SearchBarProps {
   onSearchStart: () => void; 
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ setLifts }) => {
+const SearchBar: React.FC<SearchBarProps> = ({ setLifts, onSearchStart }) => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
 
@@ -16,6 +16,9 @@ const SearchBar: React.FC<SearchBarProps> = ({ setLifts }) => {
       setErrorMessage('Please enter a valid location');
       return;
     }
+
+    onSearchStart(); // Call to indicate search has started
+    setErrorMessage(''); // Clear any previous error message
 
     try {
       const database = getDatabase(); // Get Firebase Database instance
@@ -43,8 +46,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ setLifts }) => {
 
         if (Object.keys(filteredCameras).length === 0) {
           setErrorMessage('No cameras found for this location');
-        } else {
-          setErrorMessage(''); // Clear error message if results are found
         }
       } else {
         setErrorMessage('No data available for this search.');
@@ -58,24 +59,26 @@ const SearchBar: React.FC<SearchBarProps> = ({ setLifts }) => {
     }
   };
 
+  // Handle key press events
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      handleSearch(); // Trigger search on Enter key press
+    }
+  };
+
   return (
-    <div style={{ margin: '20px 0', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <input
-        type="text"
-        placeholder="Search by location"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        style={{ padding: '10px', width: '300px', border: '1px solid #ccc', borderRadius: '5px' }}
-      />
-      <button
-        onClick={handleSearch}
-        className='hover:scale-105 transition-all'
-        style={{ padding: '10px 20px', marginTop: '10px', background: '#2E073F', color: '#fff', border: 'none', borderRadius: '5px' }}
-      >
-        Search
-      </button>
-      {errorMessage && <p style={{ color: 'red', marginTop: '10px' }}>{errorMessage}</p>}
-    </div>
+    <>
+  <input
+    type="text"
+    placeholder="Search by location"
+    value={searchTerm}
+    onChange={(e) => setSearchTerm(e.target.value)}
+    onKeyDown={handleKeyPress} // Add key press event handler
+    className="py-7 w-[70%] text-5xl border-[#E3E3E3] border-[4px] rounded-[20px] px-4 bg-[#00000080] text-white" // Tailwind CSS classes
+    />
+  {errorMessage && <p className="text-red-500 bg-gray-700 p-2 rounded-md font-bold mt-2">{errorMessage}</p>} {/* Tailwind for error message */}
+    </>
+
   );
 };
 
