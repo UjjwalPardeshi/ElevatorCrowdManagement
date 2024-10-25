@@ -1,8 +1,9 @@
-"use client";
+"use client"
 import { useState, useEffect } from 'react';
 import { ref, onValue } from 'firebase/database';
 import database from './firebase/firebaseConfig';
 import Navbar from './components/navbar';
+import { Loader2 } from 'lucide-react'; // Import the Loader2 component
 import SearchBar from './components/searchbar';
 import { Lifts } from './types';
 
@@ -64,7 +65,7 @@ export default function Home() {
     } else if (crowd_density === 'medium') {
       return 'border-orange-500';
     } else if (crowd_density === 'high') {
-      return 'border-red-500';
+      return 'border-red-600';
     } else {
       return 'border-gray-300'; // Default color if no crowd_density data
     }
@@ -80,13 +81,15 @@ export default function Home() {
       {/* Show a loader during search */}
       {loading && (
         <div className="flex justify-center items-center mt-10">
-          <div className="loader">Loading...</div> {/* Replace with a custom loader if needed */}
+          <Loader2 className="animate-spin" /> {/* Display the Loader2 component */}
         </div>
       )}
 
       {/* If no lifts are found and not loading */}
       {!loading && lifts === null && (
-        <p className="text-white text-xl mt-10">No cameras to display. Please search or wait for data to load.</p>
+        <div className="flex justify-center items-center mt-10">
+          <Loader2 className="animate-spin" /> {/* Replace the text with Loader2 */}
+        </div>
       )}
 
       {/* Render the camera data if available */}
