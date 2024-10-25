@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crowd Density Prediction</title>
+</head>
+<body>
+    <h1>Crowd Density Prediction</h1>
+    <form id="prediction-form">
+        <label for="camera_id">Camera ID:</label>
+        <input type="text" id="camera_id" name="camera_id" required>
+        <br><br>
+        <label for="time">Time (HH:MM):</label>
+        <input type="time" id="time" name="time" required>
+        <br><br>
+        <button type="submit">Predict Crowd Density</button>
+    </form>
+
+    <div id="prediction-result"></div>
+
+    <script>
+        document.getElementById('prediction-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const cameraId = document.getElementById('camera_id').value;
+            const time = document.getElementById('time').value;
+
+            fetch(`/predict?camera_id=${cameraId}&time=${time}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('prediction-result').innerText = 
+                        `Predicted crowd density for ${cameraId} at ${time}: ${data.predicted_density}`;
+                })
+                .catch(error => {
+                    document.getElementById('prediction-result').innerText = 
+                        `Error: ${error.message}`;
+                });
+        });
+    </script>
+</body>
+</html>

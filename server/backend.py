@@ -9,6 +9,7 @@ from firebase_admin import credentials, db
 from openvino.runtime import Core
 from dotenv import load_dotenv
 import os
+from datetime import datetime, timedelta
 
 # Load environment variables from the .env file
 load_dotenv()
@@ -31,7 +32,7 @@ compiled_model = core.compile_model(model=detection_model, device_name="CPU")
 input_layer = compiled_model.input(0)
 output_layer = compiled_model.output(0)
 
-# Variables for crowd detection
+# Thread-safe variables
 box_lock = threading.Lock()  # Thread-safe access to 'box' and 'boxlist'
 stopflag = threading.Event()  # Use an event to stop the inference thread gracefully
 
@@ -47,8 +48,62 @@ def update_firebase(camera_id, people_count, crowd_density, location):
             'timestamp': t.strftime("%Y-%m-%dT%H:%M:%S"),
             'send_alert': crowd_density == 'high'
         })
+        
+        # Store historical data for predictions
+        historical_ref = db.reference(f'crowd_data/{camera_id}')
+        historical_ref.push({
+            'people_count': people_count,
+            'crowd_density': crowd_density,
+            'timestamp': t.strftime("%Y-%m-%dT%H:%M:%S")
+        })
+        
     except Exception as e:
         print(f"Error updating Firebase: {e}")
+
+# Predict crowd density based on historical data
+def predict_crowd_density(camera_id, target_time):
+    # Fetch historical data from Firebase for the camera
+    ref = db.reference(f'crowd_data/{camera_id}')
+    historical_data = ref.get()
+
+    if not historical_data:
+        return "No historical data available"
+
+    # Filter data for the target time (same hour of the day)
+    target_hour = target_time.hour
+    total_density = 0
+    data_points = 0
+
+    for key, record in historical_data.items():
+        record_time = datetime.strptime(record['timestamp'], "%Y-%m-%dT%H:%M:%S")
+        if record_time.hour == target_hour:
+            total_density += convert_density_to_numeric(record['crowd_density'])
+            data_points += 1
+
+    if data_points == 0:
+        return "No data available for the given time period"
+
+    # Calculate the average crowd density
+    avg_density = total_density / data_points
+    return convert_numeric_to_density(avg_density)
+
+# Helper function to convert crowd density to a numeric value
+def convert_density_to_numeric(density):
+    if density == 'low':
+        return 1
+    elif density == 'medium':
+        return 2
+    elif density == 'high':
+        return 3
+
+# Convert the numeric value back to crowd density
+def convert_numeric_to_density(value):
+    if value <= 1.5:
+        return 'low'
+    elif value <= 2.5:
+        return 'medium'
+    else:
+        return 'high'
 
 # Inference function for a single camera, checking if it's active
 def inference(camera_id, url, location):
@@ -123,9 +178,9 @@ def inference(camera_id, url, location):
 # Start inference for cameras in separate threads
 camera_data = {
     "camera1": {"url": "http://10.9.0.41:8080/shot.jpg", "location": "Placement Office"},
-    "camera2": {"url": "http://10.9.10.108:8080/shot.jpg", "location": "Placement Office"},
+    "camera2": {"url": "http://10.9.80.97:8080/shot.jpg", "location": "Placement Office"},
     "camera3": {"url": "http://10.9.77.123:8080/shot.jpg", "location": "I Mac Lab"},
-    "camera4": {"url": "http://10.9.80.97:8080/shot.jpg", "location": "I Mac Lab"},
+    "camera4": {"url": "http://192.168.215.169:8080/shot.jpg", "location": "I Mac Lab"},
 }
 
 # Dynamically create threads for each camera
@@ -143,3 +198,4 @@ except KeyboardInterrupt:
         if thread is not threading.current_thread():
             thread.join()
 print("Server stopped.")
+
