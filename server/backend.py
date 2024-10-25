@@ -178,9 +178,9 @@ def inference(camera_id, url, location):
 # Start inference for cameras in separate threads
 camera_data = {
     "camera1": {"url": "http://10.9.0.41:8080/shot.jpg", "location": "Placement Office"},
-    "camera2": {"url": "http://10.9.10.108:8080/shot.jpg", "location": "Placement Office"},
+    "camera2": {"url": "http://10.9.80.97:8080/shot.jpg", "location": "Placement Office"},
     "camera3": {"url": "http://10.9.77.123:8080/shot.jpg", "location": "I Mac Lab"},
-    "camera4": {"url": "http://10.9.80.97:8080/shot.jpg", "location": "I Mac Lab"},
+    "camera4": {"url": "http://192.168.215.169:8080/shot.jpg", "location": "I Mac Lab"},
 }
 
 # Dynamically create threads for each camera
