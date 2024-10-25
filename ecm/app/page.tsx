@@ -72,7 +72,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center gap-5 bg-gray-800">
+    <div className="min-h-screen flex flex-col items-center gap-5 bg-[url('/bg.png')]">
       <Navbar />
 
       {/* Render SearchBar with the necessary props */}
@@ -98,7 +98,7 @@ export default function Home() {
         const borderColor = getBorderColor(camera.crowd_density);
 
         return (
-          <div key={cameraKey} className={`mb-6 w-[70%] p-4 border-[3px] bg-gray-900 rounded-lg hover:scale-105 transition-all shadow-lg ${borderColor}`}>
+          <div key={cameraKey} className={`mb-6 w-[70%] p-4 border-[3px] bg-[#000000BF] rounded-lg hover:scale-105 transition-all shadow-lg ${borderColor}`}>
             {/* Use the dynamic camera key as the title */}
             <h2 className="text-xl font-semibold text-white mb-2">{cameraKey.replace('camera', 'Camera ')}</h2>
             <div className="space-y-2 text-white">
